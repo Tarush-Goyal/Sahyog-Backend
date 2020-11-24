@@ -4,16 +4,20 @@ const jwt = require("jsonwebtoken");
 
 const HttpError = require("../models/http-error");
 const User = require("../models/user");
+const HomeOwner = require("../models/homeowner");
+const Volunteer = require("../models/volunteer");
+const NGOOwner = require("../models/ngohead");
 
 const getUsers = async (req, res, next) => {
   let users;
   try {
-    users = await User.find({}, "-password");
+    users = await HomeOwner.find({});
   } catch (err) {
     const error = new HttpError(
       "Fetching users failed, please try again later.",
       500
     );
+
     return next(error);
   }
   res.json({ users: users.map((user) => user.toObject({ getters: true })) });
@@ -30,14 +34,7 @@ const signup = async (req, res, next) => {
     date,
     type,
   } = req.body;
-  console.log(email);
-  console.log(firstName);
-  console.log(lastName);
-  console.log(password);
-  console.log(nameNGO);
-  console.log(descriptionNGO);
-  console.log(date);
-  console.log(type);
+
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -74,18 +71,60 @@ const signup = async (req, res, next) => {
     );
     return next(error);
   }
-
+  if (type == "volunteer") {
+    let check;
+    try {
+      check = await NGOOwner.findOne({ nameNGO: nameNGO });
+    } catch (err) {
+      const error = new HttpError(
+        "Signing up failed, please try again later.",
+        500
+      );
+      return next(error);
+    }
+    if (!check) {
+      const error = new HttpError("No Such NGO Exists.", 422);
+      return next(error);
+    }
+  }
+  var fname = firstName;
+  var middle = " ";
+  var lname = lastName;
+  var name = fname.concat(middle, lname);
   const createdUser = new User({
-    firstName,
     email,
-    type,
-    image: req.file.path,
     password: hashedPassword,
-    places: [],
+    type,
   });
-
+  var createdUser2;
+  if (type == "homeowner") {
+    createdUser2 = new HomeOwner({
+      email,
+      name,
+      image: req.file.path,
+      places: [],
+    });
+  } else if (type == "head") {
+    createdUser2 = new NGOOwner({
+      email,
+      name,
+      image: req.file.path,
+      nameNGO,
+      descriptionNGO: descriptionNGO,
+    });
+  } else if (type == "volunteer") {
+    const url = req.file.path;
+    createdUser2 = new Volunteer({
+      image: url,
+      email: email,
+      name: name,
+      nameNGO: nameNGO,
+    });
+  } else {
+  }
   try {
     await createdUser.save();
+    await createdUser2.save();
   } catch (err) {
     const error = new HttpError(
       "Signing up failed, please try again later.",
@@ -109,14 +148,16 @@ const signup = async (req, res, next) => {
     return next(error);
   }
 
-  res
-    .status(201)
-    .json({ userId: createdUser.id, email: createdUser.email, token: token });
+  res.status(201).json({
+    userId: createdUser.id,
+    email: createdUser.email,
+    token: token,
+    type: createdUser.type,
+  });
 };
 
 const login = async (req, res, next) => {
   const { email, password } = req.body;
-
   let existingUser;
 
   try {
@@ -170,11 +211,11 @@ const login = async (req, res, next) => {
     );
     return next(error);
   }
-
   res.json({
     userId: existingUser.id,
     email: existingUser.email,
     token: token,
+    type: existingUser.type,
     //type
   });
 };
