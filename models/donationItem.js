@@ -18,6 +18,11 @@ const itemSchema = new Schema({
   image: { type: String, required: true },
   userId: { type: mongoose.Types.ObjectId, required: true, ref: "HomeOwner" },
   status: { type: String, required: true },
+  assignedVolunteer: {
+    type: mongoose.Types.ObjectId,
+    ref: "Volunteer",
+    default: undefined,
+  },
 });
 
 module.exports = mongoose.model("Item", itemSchema);

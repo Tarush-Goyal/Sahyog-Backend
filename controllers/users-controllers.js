@@ -8,6 +8,7 @@ const HomeOwner = require("../models/homeowner");
 const Volunteer = require("../models/volunteer");
 const NGOOwner = require("../models/ngohead");
 const Item = require("../models/donationItem");
+const mongoose = require("mongoose");
 
 const getUsers = async (req, res, next) => {
   let users;
@@ -42,6 +43,54 @@ const activeDonationRequest = async (req, res, next) => {
   });
   res.json(filtered);
 };
+const acceptDonationRequest = async (req, res, next) => {
+  const { itemId, VolunteerId } = req.body;
+  let existingItem;
+  try {
+    existingItem = await Item.findById(itemId);
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, please try again later.",
+      500
+    );
+    return next(error);
+  }
+  existingItem.status = "pending";
+  try {
+    await existingItem.save();
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not update item status.",
+      500
+    );
+    return next(error);
+  }
+  res.status(201).json({ item: existingItem });
+};
+const completeDonationRequest = async (req, res, next) => {
+  const { itemId, VolunteerId } = req.body;
+  let existingItem;
+  try {
+    existingItem = await Item.findById(itemId);
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, please try again later.",
+      500
+    );
+    return next(error);
+  }
+  existingItem.status = "completed";
+  try {
+    await existingItem.save();
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not update item status.",
+      500
+    );
+    return next(error);
+  }
+  res.status(201).json({ item: existingItem });
+};
 
 const signup = async (req, res, next) => {
   const {
@@ -63,6 +112,7 @@ const signup = async (req, res, next) => {
   }
 
   let existingUser;
+  let check;
   try {
     existingUser = await User.findOne({ email: email });
   } catch (err) {
@@ -92,7 +142,6 @@ const signup = async (req, res, next) => {
     return next(error);
   }
   if (type == "volunteer") {
-    let check;
     try {
       check = await NGOOwner.findOne({ nameNGO: nameNGO });
     } catch (err) {
@@ -115,6 +164,7 @@ const signup = async (req, res, next) => {
     email,
     password: hashedPassword,
     type,
+    date,
   });
   var createdUser2;
   if (type == "homeowner") {
@@ -122,7 +172,6 @@ const signup = async (req, res, next) => {
       email,
       name,
       image: req.file.path,
-      items: [],
     });
   } else if (type == "head") {
     createdUser2 = new NGOOwner({
@@ -139,13 +188,22 @@ const signup = async (req, res, next) => {
       email: email,
       name: name,
       nameNGO: nameNGO,
+      headNGO: check.id,
     });
   } else {
   }
   try {
-    await createdUser.save();
-    await createdUser2.save();
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await createdUser.save({ session: sess });
+    await createdUser2.save({ session: sess });
+    if (check) {
+      await check.volunteers.push(createdUser2);
+      await check.save({ session: sess });
+    }
+    await sess.commitTransaction();
   } catch (err) {
+    console.log(err);
     const error = new HttpError(
       "Signing up failed, please try again later.",
       500

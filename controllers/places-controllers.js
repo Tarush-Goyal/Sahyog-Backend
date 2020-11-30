@@ -31,13 +31,20 @@ const { use } = require("../routes/users-routes");
     return next(error);
   }
   res.json({ place: place.toObject({ getters: true }) });
-};
-const getPlacesByUserId = async (req, res, next) => {
-  const userId = req.params.uid;
-  // let places;
-  let userWithPlaces;
+};*/
+
+//itemspickedByVolunteerId
+
+//donationsMadeByAparticularNgo
+
+const getDonatedItemsByUserId = async (req, res, next) => {
+  let user;
+  let homeowner;
+  let userWithItems;
   try {
-    userWithPlaces = await User.findById(userId).populate("places");
+    user = await User.findById(req.params.uid);
+    homeowner = await HomeOwner.findOne({ email: user.email });
+    userWithItems = homeowner.populate("items");
   } catch (err) {
     const error = new HttpError(
       "Fetching places failed, please try again later.",
@@ -45,18 +52,19 @@ const getPlacesByUserId = async (req, res, next) => {
     );
     return next(error);
   }
-  // if (!places || places.length === 0) {
-  if (!userWithPlaces || userWithPlaces.places.length === 0) {
+
+  if (!userWithItems || userWithItems.items.length === 0) {
     return next(
-      new HttpError("Could not find places for the provided user id.", 404)
+      new HttpError(
+        "Could not find donated items for the provided user id.",
+        404
+      )
     );
   }
   res.json({
-    places: userWithPlaces.places.map((place) =>
-      place.toObject({ getters: true })
-    ),
+    items: userWithItems.items.map((item) => item.toObject({ getters: true })),
   });
-};*/
+};
 
 const donateItem = async (req, res, next) => {
   console.log("wow");
@@ -109,11 +117,11 @@ const donateItem = async (req, res, next) => {
   }
 
   const donatedItem = new Item({
-    itemName,
-    category,
-    quantity,
-    address,
-    date,
+    itemName: itemName,
+    category: category,
+    quantity: quantity,
+    address: address,
+    date: date,
     image: req.file.path,
     userId: homeowner.id,
     status: "active",
@@ -227,5 +235,6 @@ const deletePlace = async (req, res, next) => {
 //exports.getPlaceById = getPlaceById;
 //exports.getPlacesByUserId = getPlacesByUserId;
 exports.donateItem = donateItem;
+exports.getDonatedItemsByUserId = getDonatedItemsByUserId;
 //exports.updatePlace = updatePlace;
 //exports.deletePlace = deletePlace;
