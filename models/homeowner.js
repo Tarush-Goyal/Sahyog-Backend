@@ -7,7 +7,7 @@ const homeOwner = new Schema2({
   email: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   image: { type: String, required: true },
-  places: [{ type: mongoose2.Types.ObjectId, required: true, ref: "Place" }],
+  items: [{ type: mongoose2.Types.ObjectId, required: true, ref: "Item" }],
 });
 
 homeOwner.plugin(uniqueValidator2);

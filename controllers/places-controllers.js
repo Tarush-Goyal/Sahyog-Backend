@@ -5,12 +5,14 @@ const mongoose = require("mongoose");
 
 const HttpError = require("../models/http-error");
 const getCoordsForAddress = require("../util/location");
-const Place = require("../models/place");
+const Item = require("../models/donationItem");
+const HomeOwner = require("../models/homeowner");
 const User = require("../models/user");
+const homeowner = require("../models/homeowner");
+const { use } = require("../routes/users-routes");
 
-const getPlaceById = async (req, res, next) => {
+/*const getPlaceById = async (req, res, next) => {
   const placeId = req.params.pid;
-
   let place;
   try {
     place = await Place.findById(placeId);
@@ -21,7 +23,6 @@ const getPlaceById = async (req, res, next) => {
     );
     return next(error);
   }
-
   if (!place) {
     const error = new HttpError(
       "Could not find place for the provided id.",
@@ -29,13 +30,10 @@ const getPlaceById = async (req, res, next) => {
     );
     return next(error);
   }
-
   res.json({ place: place.toObject({ getters: true }) });
 };
-
 const getPlacesByUserId = async (req, res, next) => {
   const userId = req.params.uid;
-
   // let places;
   let userWithPlaces;
   try {
@@ -47,22 +45,21 @@ const getPlacesByUserId = async (req, res, next) => {
     );
     return next(error);
   }
-
   // if (!places || places.length === 0) {
   if (!userWithPlaces || userWithPlaces.places.length === 0) {
     return next(
       new HttpError("Could not find places for the provided user id.", 404)
     );
   }
-
   res.json({
     places: userWithPlaces.places.map((place) =>
       place.toObject({ getters: true })
     ),
   });
-};
+};*/
 
-const createPlace = async (req, res, next) => {
+const donateItem = async (req, res, next) => {
+  console.log("wow");
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -70,27 +67,34 @@ const createPlace = async (req, res, next) => {
     );
   }
 
-  const { title, description, address } = req.body;
+  const {
+    itemName,
+    category,
+    quantity,
+    street,
+    landmark,
+    city,
+    state,
+    pincode,
+    house,
+    date,
+    image,
+  } = req.body;
 
-  let coordinates;
-  try {
-    coordinates = await getCoordsForAddress(address);
-  } catch (error) {
-    return next(error);
-  }
-
-  const createdPlace = new Place({
-    title,
-    description,
-    address,
-    location: coordinates,
-    image: req.file.path,
-    creator: req.userData.userId,
-  });
+  const address = {
+    street: street,
+    landmark: landmark,
+    city: city,
+    state: state,
+    pincode: pincode,
+    house: house,
+  };
 
   let user;
+  let homeowner;
   try {
     user = await User.findById(req.userData.userId);
+    homeowner = await HomeOwner.findOne({ email: user.email });
   } catch (err) {
     const error = new HttpError(
       "Creating place failed, please try again.",
@@ -104,16 +108,32 @@ const createPlace = async (req, res, next) => {
     return next(error);
   }
 
-  console.log(user);
-
+  const donatedItem = new Item({
+    itemName,
+    category,
+    quantity,
+    address,
+    date,
+    image: req.file.path,
+    userId: homeowner.id,
+    status: "active",
+  });
+  console.log(itemName);
+  console.log(category);
+  console.log(quantity);
+  console.log(address);
+  console.log(date);
+  console.log(req.file.path);
+  console.log(homeowner.id);
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
-    await createdPlace.save({ session: sess });
-    user.places.push(createdPlace);
-    await user.save({ session: sess });
+    await donatedItem.save({ session: sess });
+    homeowner.items.push(donatedItem);
+    await homeowner.save({ session: sess });
     await sess.commitTransaction();
   } catch (err) {
+    console.log(err);
     const error = new HttpError(
       "Creating place failed, please try again.",
       500
@@ -121,9 +141,9 @@ const createPlace = async (req, res, next) => {
     return next(error);
   }
 
-  res.status(201).json({ place: createdPlace });
+  res.status(201).json({ item: donatedItem });
 };
-
+/*
 const updatePlace = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -131,10 +151,8 @@ const updatePlace = async (req, res, next) => {
       new HttpError("Invalid inputs passed, please check your data.", 422)
     );
   }
-
   const { title, description } = req.body;
   const placeId = req.params.pid;
-
   let place;
   try {
     place = await Place.findById(placeId);
@@ -145,15 +163,12 @@ const updatePlace = async (req, res, next) => {
     );
     return next(error);
   }
-
   if (place.creator.toString() !== req.userData.userId) {
     const error = new HttpError("You are not allowed to edit this place.", 401);
     return next(error);
   }
-
   place.title = title;
   place.description = description;
-
   try {
     await place.save();
   } catch (err) {
@@ -163,13 +178,10 @@ const updatePlace = async (req, res, next) => {
     );
     return next(error);
   }
-
   res.status(200).json({ place: place.toObject({ getters: true }) });
 };
-
 const deletePlace = async (req, res, next) => {
   const placeId = req.params.pid;
-
   let place;
   try {
     place = await Place.findById(placeId).populate("creator");
@@ -180,12 +192,10 @@ const deletePlace = async (req, res, next) => {
     );
     return next(error);
   }
-
   if (!place) {
     const error = new HttpError("Could not find place for this id.", 404);
     return next(error);
   }
-
   if (place.creator.id !== req.userData.userId) {
     const error = new HttpError(
       "You are not allowed to delete this place.",
@@ -193,9 +203,7 @@ const deletePlace = async (req, res, next) => {
     );
     return next(error);
   }
-
   const imagePath = place.image;
-
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
@@ -210,16 +218,14 @@ const deletePlace = async (req, res, next) => {
     );
     return next(error);
   }
-
   fs.unlink(imagePath, (err) => {
     console.log(err);
   });
-
   res.status(200).json({ message: "Deleted place." });
-};
+};*/
 
-exports.getPlaceById = getPlaceById;
-exports.getPlacesByUserId = getPlacesByUserId;
-exports.createPlace = createPlace;
-exports.updatePlace = updatePlace;
-exports.deletePlace = deletePlace;
+//exports.getPlaceById = getPlaceById;
+//exports.getPlacesByUserId = getPlacesByUserId;
+exports.donateItem = donateItem;
+//exports.updatePlace = updatePlace;
+//exports.deletePlace = deletePlace;

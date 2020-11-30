@@ -18,7 +18,7 @@ router.post(
   ],
   usersController.signup
 );
-
+router.post("/activeDonationRequest", usersController.activeDonationRequest);
 router.post("/login", usersController.login);
 
 module.exports = router;

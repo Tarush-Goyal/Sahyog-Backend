@@ -7,6 +7,7 @@ const User = require("../models/user");
 const HomeOwner = require("../models/homeowner");
 const Volunteer = require("../models/volunteer");
 const NGOOwner = require("../models/ngohead");
+const Item = require("../models/donationItem");
 
 const getUsers = async (req, res, next) => {
   let users;
@@ -21,6 +22,25 @@ const getUsers = async (req, res, next) => {
     return next(error);
   }
   res.json({ users: users.map((user) => user.toObject({ getters: true })) });
+};
+
+const activeDonationRequest = async (req, res, next) => {
+  let items;
+  try {
+    items = await Item.find({});
+  } catch (err) {
+    const error = new HttpError(
+      "Fetching users failed, please try again later.",
+      500
+    );
+    return next(error);
+  }
+
+  let filtered = [];
+  items.forEach((x) => {
+    if (x.status == "active") filtered.push(x);
+  });
+  res.json(filtered);
 };
 
 const signup = async (req, res, next) => {
@@ -102,7 +122,7 @@ const signup = async (req, res, next) => {
       email,
       name,
       image: req.file.path,
-      places: [],
+      items: [],
     });
   } else if (type == "head") {
     createdUser2 = new NGOOwner({
@@ -216,10 +236,10 @@ const login = async (req, res, next) => {
     email: existingUser.email,
     token: token,
     type: existingUser.type,
-    //type
   });
 };
 
 exports.getUsers = getUsers;
 exports.signup = signup;
 exports.login = login;
+exports.activeDonationRequest = activeDonationRequest;
