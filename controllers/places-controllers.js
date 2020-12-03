@@ -101,33 +101,6 @@ const volunteersUnderNgo = async (req, res, next) => {
     ),
   });
 };
-const itemsPickedByVolunteerId = async (req, res, next) => {
-  const { _id } = req.body;
-  let user;
-  let volunteer;
-  let volunteerWithItems;
-  try {
-    user = await User.findById(_id);
-    volunteer = await Volunteer.findOne({ email: user.email });
-    volunteerWithItems = volunteer.populate("donationAccepted");
-  } catch (err) {
-    const error = new HttpError(
-      "Fetching volunteer failed, please try again later.",
-      500
-    );
-    return next(error);
-  }
-  if (!volunteerWithItems || volunteerWithItems.donationAccepted.length === 0) {
-    return next(
-      new HttpError("Could not find items for the provided volunteer id.", 404)
-    );
-  }
-  res.json({
-    items: volunteerWithItems.donationAccepted.map((item) =>
-      item.toObject({ getters: true })
-    ),
-  });
-};
 
 const donateItem = async (req, res, next) => {
   console.log("wow");
@@ -214,6 +187,5 @@ const donateItem = async (req, res, next) => {
 
   res.status(201).json({ item: donatedItem });
 };
-exports.itemsPickedByVolunteerId = itemsPickedByVolunteerId;
 exports.donateItem = donateItem;
 exports.volunteersUnderNgo = volunteersUnderNgo;

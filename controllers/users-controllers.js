@@ -42,7 +42,7 @@ const activeDonationRequest = async (req, res, next) => {
   items.forEach((x) => {
     if (x.status == "active") filtered.push(x);
   });
-  res.json(filtered);
+  res.json({ items: filtered });
 };
 const acceptDonationRequest = async (req, res, next) => {
   const { _id, volunteerId } = req.body;
@@ -92,7 +92,6 @@ const acceptDonationRequest = async (req, res, next) => {
 const getDonatedItemsByUserId = async (req, res, next) => {
   const _id = req.params.uid;
   let user;
-  let homeowner;
   let userWithItems;
   try {
     user = await User.findById(_id);
@@ -120,7 +119,66 @@ const getDonatedItemsByUserId = async (req, res, next) => {
     items: userWithItems.items.map((item) => item.toObject({ getters: true })),
   });
 };
+const itemsPickedByVolunteerId = async (req, res, next) => {
+  const _id = req.params.uid;
+  let user;
+  let volunteerWithItems;
+  try {
+    user = await User.findById(_id);
+    volunteerWithItems = await Volunteer.findOne({
+      email: user.email,
+    }).populate("donationAccepted");
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError(
+      "Fetching places failed, please try again later.",
+      500
+    );
+    return next(error);
+  }
 
+  if (!volunteerWithItems || volunteerWithItems.donationAccepted.length === 0) {
+    return next(
+      new HttpError(
+        "Could not find donated items for the provided user id.",
+        404
+      )
+    );
+  }
+  res.json({
+    items: volunteerWithItems.donationAccepted.map((item) =>
+      item.toObject({ getters: true })
+    ),
+  });
+};
+const volunteerIdCard = async (req, res, next) => {
+  const _id = req.params.uid;
+  let user;
+  let volunteer;
+  try {
+    user = await User.findById(_id);
+    volunteer = Volunteer.findOne({ email: user.email });
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("error", 500);
+    return next(error);
+  }
+  res.json(volunteer);
+};
+const HomeOwnerIdCard = async (req, res, next) => {
+  const _id = req.params.uid;
+  let user;
+  let homeowner;
+  try {
+    user = await User.findById(_id);
+    homeowner = HomeOwner.findOne({ email: user.email });
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("error", 500);
+    return next(error);
+  }
+  res.json(homeowner);
+};
 const pickDonationRequest = async (req, res, next) => {
   const { _id } = req.body;
   let existingItem;
@@ -401,3 +459,6 @@ exports.acceptDonationRequest = acceptDonationRequest;
 exports.pickDonationRequest = pickDonationRequest;
 exports.completeDonationRequest = completeDonationRequest;
 exports.getDonatedItemsByUserId = getDonatedItemsByUserId;
+exports.itemsPickedByVolunteerId = itemsPickedByVolunteerId;
+exports.volunteerIdCard = volunteerIdCard;
+exports.HomeOwnerIdCard = HomeOwnerIdCard;

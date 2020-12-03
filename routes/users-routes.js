@@ -22,6 +22,12 @@ router.get(
   "/itemsDonatedByUserId/:uid",
   usersController.getDonatedItemsByUserId
 );
+router.get(
+  "/itemsAcceptedByVolunteerId/:uid",
+  usersController.itemsPickedByVolunteerId
+);
+router.get("/volunteerId/:uid", usersController.volunteerIdCard);
+router.get("/homeownerId/:uid", usersController.HomeOwnerIdCard);
 router.get("/activeDonationRequest", usersController.activeDonationRequest);
 router.post("/acceptRequest", usersController.acceptDonationRequest);
 router.post("/pickRequest", usersController.pickDonationRequest);
