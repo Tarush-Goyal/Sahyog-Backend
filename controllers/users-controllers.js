@@ -9,6 +9,7 @@ const Volunteer = require("../models/volunteer");
 const NGOOwner = require("../models/ngohead");
 const Item = require("../models/donationItem");
 const mongoose = require("mongoose");
+const user = require("../models/user");
 
 const getUsers = async (req, res, next) => {
   let users;
@@ -44,10 +45,23 @@ const activeDonationRequest = async (req, res, next) => {
   res.json(filtered);
 };
 const acceptDonationRequest = async (req, res, next) => {
-  const { itemId, VolunteerId } = req.body;
+  const { _id, volunteerId } = req.body;
   let existingItem;
+  let existingVolunteer;
+  let existingUser;
+  let VolunteerId;
   try {
-    existingItem = await Item.findById(itemId);
+    existingItem = await Item.findById(_id);
+    existingUser = await User.findById(volunteerId);
+    existingVolunteer = await Volunteer.findOne({ email: existingUser.email });
+    VolunteerId = existingVolunteer.id;
+    if (existingItem.status != "active") {
+      const error = new HttpError(
+        "Someone else has confirmed the donation.",
+        404
+      );
+      return next(error);
+    }
   } catch (err) {
     const error = new HttpError(
       "Something went wrong, please try again later.",
@@ -56,8 +70,82 @@ const acceptDonationRequest = async (req, res, next) => {
     return next(error);
   }
   existingItem.status = "pending";
+  existingItem.assignedVolunteer = VolunteerId;
   try {
-    await existingItem.save();
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await existingItem.save({ session: sess });
+    await existingVolunteer.donationAccepted.push(existingItem);
+    await existingVolunteer.save({ session: sess });
+    await sess.commitTransaction();
+  } catch (err) {
+    0;
+    console.log(err);
+    const error = new HttpError(
+      "Something went wrong, could not update item status.",
+      500
+    );
+    return next(error);
+  }
+  res.status(201).json({ item: existingItem });
+};
+const getDonatedItemsByUserId = async (req, res, next) => {
+  const _id = req.params.uid;
+  let user;
+  let homeowner;
+  let userWithItems;
+  try {
+    user = await User.findById(_id);
+    userWithItems = await HomeOwner.findOne({ email: user.email }).populate(
+      "items"
+    );
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError(
+      "Fetching places failed, please try again later.",
+      500
+    );
+    return next(error);
+  }
+
+  if (!userWithItems || userWithItems.items.length === 0) {
+    return next(
+      new HttpError(
+        "Could not find donated items for the provided user id.",
+        404
+      )
+    );
+  }
+  res.json({
+    items: userWithItems.items.map((item) => item.toObject({ getters: true })),
+  });
+};
+
+const pickDonationRequest = async (req, res, next) => {
+  const { _id } = req.body;
+  let existingItem;
+  try {
+    existingItem = await Item.findById(_id);
+    if (existingItem.status != "pending") {
+      const error = new HttpError(
+        "Someone else has picked up the donation.",
+        404
+      );
+      return next(error);
+    }
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, please try again later.",
+      500
+    );
+    return next(error);
+  }
+  existingItem.status = "pickedUp";
+  try {
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await existingItem.save({ session: sess });
+    await sess.commitTransaction();
   } catch (err) {
     const error = new HttpError(
       "Something went wrong, could not update item status.",
@@ -67,11 +155,16 @@ const acceptDonationRequest = async (req, res, next) => {
   }
   res.status(201).json({ item: existingItem });
 };
+
 const completeDonationRequest = async (req, res, next) => {
-  const { itemId, VolunteerId } = req.body;
+  const { itemId } = req.body;
   let existingItem;
   try {
     existingItem = await Item.findById(itemId);
+    if (existingItem.status != "pickedUp") {
+      const error = new HttpError("Error 404.", 404);
+      return next(error);
+    }
   } catch (err) {
     const error = new HttpError(
       "Something went wrong, please try again later.",
@@ -79,9 +172,12 @@ const completeDonationRequest = async (req, res, next) => {
     );
     return next(error);
   }
-  existingItem.status = "completed";
+  existingItem.status = "delivered";
   try {
-    await existingItem.save();
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await existingItem.save({ session: sess });
+    await sess.commitTransaction();
   } catch (err) {
     const error = new HttpError(
       "Something went wrong, could not update item status.",
@@ -301,3 +397,7 @@ exports.getUsers = getUsers;
 exports.signup = signup;
 exports.login = login;
 exports.activeDonationRequest = activeDonationRequest;
+exports.acceptDonationRequest = acceptDonationRequest;
+exports.pickDonationRequest = pickDonationRequest;
+exports.completeDonationRequest = completeDonationRequest;
+exports.getDonatedItemsByUserId = getDonatedItemsByUserId;

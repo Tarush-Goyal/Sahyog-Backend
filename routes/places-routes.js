@@ -14,6 +14,11 @@ const router = express.Router();
 router.use(checkAuth);
 
 router.post("/", fileUpload.single("image"), placesControllers.donateItem);
+router.get(
+  "/itemsPickedByVolunteerId",
+  placesControllers.itemsPickedByVolunteerId
+);
+router.get("/volunteersUnderNgo", placesControllers.volunteersUnderNgo);
 
 /*router.patch(
   "/:pid",
