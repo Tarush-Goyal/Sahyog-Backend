@@ -23,6 +23,10 @@ const itemSchema = new Schema({
     ref: "Volunteer",
     default: undefined,
   },
+  otp: {
+    type: String,
+    default: undefined,
+  },
 });
 
 module.exports = mongoose.model("Item", itemSchema);

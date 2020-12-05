@@ -6,8 +6,6 @@ const fileUpload = require("../middleware/file-upload");
 
 const router = express.Router();
 
-router.get("/", usersController.getUsers);
-
 router.post(
   "/signup",
   fileUpload.single("image"),
@@ -18,20 +16,6 @@ router.post(
   ],
   usersController.signup
 );
-router.get(
-  "/itemsDonatedByUserId/:uid",
-  usersController.getDonatedItemsByUserId
-);
-router.get(
-  "/itemsAcceptedByVolunteerId/:uid",
-  usersController.itemsPickedByVolunteerId
-);
-router.get("/volunteerId/:uid", usersController.volunteerIdCard);
-router.get("/homeownerId/:uid", usersController.HomeOwnerIdCard);
-router.get("/activeDonationRequest", usersController.activeDonationRequest);
-router.post("/acceptRequest", usersController.acceptDonationRequest);
-router.post("/pickRequest", usersController.pickDonationRequest);
-router.post("/completeRequest", usersController.completeDonationRequest);
 router.post("/login", usersController.login);
 
 module.exports = router;

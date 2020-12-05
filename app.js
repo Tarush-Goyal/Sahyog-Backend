@@ -5,8 +5,11 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 
-const placesRoutes = require("./routes/places-routes");
 const usersRoutes = require("./routes/users-routes");
+const homeownerRoutes = require("./routes/homeowner-routes");
+const volunteerRoutes = require("./routes/volunteer-routes");
+const ngoheadRoutes = require("./routes/ngohead-routes");
+
 const HttpError = require("./models/http-error");
 
 const app = express();
@@ -26,8 +29,10 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/api/donate", placesRoutes);
 app.use("/api/users", usersRoutes);
+app.use("/api/homeowner", homeownerRoutes);
+app.use("/api/volunteer", volunteerRoutes);
+app.use("/api/ngohead", ngoheadRoutes);
 
 app.use((req, res, next) => {
   const error = new HttpError("Could not find this route.", 404);
