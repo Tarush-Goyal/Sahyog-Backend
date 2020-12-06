@@ -11,6 +11,7 @@ const volunteer = new Schema3({
   donationAccepted: [
     { type: mongoose3.Types.ObjectId, required: true, ref: "Item" },
   ],
+  status: { type: String, required: true },
 });
 volunteer.plugin(uniqueValidator3);
 module.exports = mongoose3.model("Volunteer", volunteer);

@@ -107,6 +107,7 @@ const signup = async (req, res, next) => {
       name: name,
       nameNGO: nameNGO,
       headNGO: check.id,
+      status: "Not Approved",
     });
   } else {
   }
@@ -131,6 +132,9 @@ const signup = async (req, res, next) => {
 
   let token;
   try {
+    if (type == "volunteer") {
+      return next(new HttpError("Wait until your NGO Head approves you.", 404));
+    }
     token = jwt.sign(
       { userId: createdUser.id, email: createdUser.email },
       "supersecret_dont_share",
@@ -195,6 +199,19 @@ const login = async (req, res, next) => {
 
   let token;
   try {
+    if (existingUser.type == "Volunteer") {
+      let existingVolunteer = await Volunteer.findOne({
+        email: existingUser.email,
+      });
+      if (existingVolunteer.status == "Not Approved") {
+        return next(
+          new HttpError("Wait until your NGO Head approves you.", 404)
+        );
+      }
+      if (existingVolunteer.status == "Declined") {
+        return next(new HttpError("NGO HEAD has declined you.", 404));
+      }
+    }
     token = jwt.sign(
       { userId: existingUser.id, email: existingUser.email },
       "supersecret_dont_share",

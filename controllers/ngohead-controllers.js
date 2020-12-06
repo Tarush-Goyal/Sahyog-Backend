@@ -16,7 +16,7 @@ const completeDonationRequest = async (req, res, next) => {
   let existingItem;
   try {
     existingItem = await Item.findById(_id);
-    if (existingItem.status != "Picked up") {
+    if (existingItem.status != "Picked Up") {
       const error = new HttpError("Error 404.", 404);
       return next(error);
     }
@@ -57,6 +57,9 @@ const ngoHistory = async (req, res, next) => {
       {
         path: "volunteers",
         model: "Volunteer",
+        match: {
+          status: "Approved",
+        },
         populate: {
           path: "donationAccepted",
           model: "Item",
@@ -85,7 +88,6 @@ const ngoHistory = async (req, res, next) => {
 
 //NGO inventory
 const ngoInventory = async (req, res, next) => {
-  console.log("entered");
   const _id = req.params.uid;
   let user;
   let volunteersUnderNGO;
@@ -95,11 +97,14 @@ const ngoInventory = async (req, res, next) => {
       {
         path: "volunteers",
         model: "Volunteer",
+        match: {
+          status: "Approved",
+        },
         populate: {
           path: "donationAccepted",
           model: "Item",
           match: {
-            status: "pickedUp",
+            status: "Picked Up",
           },
         },
       }
@@ -131,8 +136,53 @@ const volunteersUnderNgo = async (req, res, next) => {
   let volunteersunderNGO;
   try {
     user = await User.findById(_id);
+    volunteersunderNGO = await NGOOwner.findOne({
+      email: user.email,
+    }).populate({
+      path: "volunteers",
+      model: "Volunteer",
+      match: {
+        status: "Approved",
+      },
+      populate: {
+        path: "donationAccepted",
+        model: "Item",
+        match: {
+          status: "Picked Up",
+        },
+      },
+    });
+  } catch (err) {
+    const error = new HttpError("Something went wrong. Please try again.", 500);
+    return next(error);
+  }
+  if (!volunteersunderNGO || volunteersunderNGO.volunteers.length == 0) {
+    return next(
+      new HttpError("There is no current Volunteer in this NGO", 404)
+    );
+  }
+
+  res.json({
+    items: volunteersunderNGO.volunteers.map((item) =>
+      item.toObject({ getters: true })
+    ),
+  });
+};
+
+const volunteersNotApproved = async (req, res, next) => {
+  const _id = req.params.uid;
+  let user;
+  let volunteersunderNGO;
+  try {
+    user = await User.findById(_id);
     volunteersunderNGO = await NGOOwner.findOne({ email: user.email }).populate(
-      "volunteers"
+      {
+        path: "volunteers",
+        model: "Volunteer",
+        match: {
+          status: "Not Approved",
+        },
+      }
     );
   } catch (err) {
     const error = new HttpError("Something went wrong. Please try again.", 500);
@@ -151,6 +201,59 @@ const volunteersUnderNgo = async (req, res, next) => {
   });
 };
 
+const approveVolunteer = async (req, res, next) => {
+  const _id = req.params.uid;
+  let volunteer;
+  try {
+    volunteer = await Volunteer.findById(_id);
+    volunteer.status = "Approved";
+  } catch (err) {
+    const error = new HttpError("Something went wrong. Please try again.", 500);
+    return next(error);
+  }
+  try {
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await volunteer.save({ session: sess });
+    await sess.commitTransaction();
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not update volunteer status.",
+      500
+    );
+    return next(error);
+  }
+  res.status(201).json({ item: volunteer });
+};
+
+const declineVolunteer = async (req, res, next) => {
+  const _id = req.params.uid;
+  let volunteer;
+  try {
+    volunteer = await Volunteer.findById(_id);
+    volunteer.status = "Declined";
+  } catch (err) {
+    const error = new HttpError("Something went wrong. Please try again.", 500);
+    return next(error);
+  }
+  try {
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await volunteer.save({ session: sess });
+    await sess.commitTransaction();
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not update volunteer status.",
+      500
+    );
+    return next(error);
+  }
+  res.status(201).json({ item: volunteer });
+};
+
 exports.completeDonationRequest = completeDonationRequest;
 exports.ngoInventory = ngoInventory;
 exports.volunteersUnderNgo = volunteersUnderNgo;
+exports.volunteersNotApproved = volunteersNotApproved;
+exports.approveVolunteer = approveVolunteer;
+exports.declineVolunteer = declineVolunteer;

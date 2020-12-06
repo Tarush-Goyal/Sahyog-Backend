@@ -168,6 +168,9 @@ const volunteerLeaderBoard = async (req, res, next) => {
     volunteersUnderNGO = await NGOOwner.findById(volunteer.headNGO).populate({
       path: "volunteers",
       model: "Volunteer",
+      match: {
+        status: "Approved",
+      },
       populate: {
         path: "donationAccepted",
         model: "Item",
