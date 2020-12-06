@@ -12,11 +12,11 @@ const mongoose = require("mongoose");
 
 //Complete donation
 const completeDonationRequest = async (req, res, next) => {
-  const _id = req.params.uid;
+  const { _id, quantity } = req.body;
   let existingItem;
   try {
     existingItem = await Item.findById(_id);
-    if (existingItem.status != "Picked Up") {
+    if (existingItem.status != "Picked up") {
       const error = new HttpError("Error 404.", 404);
       return next(error);
     }
@@ -27,7 +27,10 @@ const completeDonationRequest = async (req, res, next) => {
     );
     return next(error);
   }
-  existingItem.status = "Completed";
+  existingItem.quantity = quantity;
+  if (quantity == "0") {
+    existingItem.status = "Completed";
+  }
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
@@ -82,6 +85,7 @@ const ngoHistory = async (req, res, next) => {
 
 //NGO inventory
 const ngoInventory = async (req, res, next) => {
+  console.log("entered");
   const _id = req.params.uid;
   let user;
   let volunteersUnderNGO;
@@ -95,7 +99,7 @@ const ngoInventory = async (req, res, next) => {
           path: "donationAccepted",
           model: "Item",
           match: {
-            status: "Picked Up",
+            status: "pickedUp",
           },
         },
       }
@@ -107,7 +111,7 @@ const ngoInventory = async (req, res, next) => {
     return next(new HttpError("Error.", 404));
   }
   let ans = [];
-  volunteersunderNGO.volunteers.forEach((v) => {
+  volunteersUnderNGO.volunteers.forEach((v) => {
     v.donationAccepted.forEach((i) => {
       ans.push(i);
     });
@@ -127,7 +131,7 @@ const volunteersUnderNgo = async (req, res, next) => {
   let volunteersunderNGO;
   try {
     user = await User.findById(_id);
-    volunteersUnderNGO = await NGOOwner.findOne({ email: user.email }).populate(
+    volunteersunderNGO = await NGOOwner.findOne({ email: user.email }).populate(
       "volunteers"
     );
   } catch (err) {
@@ -148,3 +152,5 @@ const volunteersUnderNgo = async (req, res, next) => {
 };
 
 exports.completeDonationRequest = completeDonationRequest;
+exports.ngoInventory = ngoInventory;
+exports.volunteersUnderNgo = volunteersUnderNgo;

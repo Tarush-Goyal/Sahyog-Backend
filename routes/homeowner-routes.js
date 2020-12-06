@@ -12,3 +12,6 @@ router.get(
   homeownerController.getDonatedItemsByUserId
 );
 router.get("/homeownerId/:uid", homeownerController.HomeOwnerIdCard);
+router.post("/donateItem", homeownerController.donateItem);
+
+module.exports = router;
