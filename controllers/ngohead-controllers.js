@@ -201,37 +201,16 @@ const volunteersNotApproved = async (req, res, next) => {
   });
 };
 
-const approveVolunteer = async (req, res, next) => {
-  const _id = req.params.uid;
+const approveOrDeclineVolunteer = async (req, res, next) => {
+  const { _id, approve } = req.body;
   let volunteer;
   try {
     volunteer = await Volunteer.findById(_id);
-    volunteer.status = "Approved";
-  } catch (err) {
-    const error = new HttpError("Something went wrong. Please try again.", 500);
-    return next(error);
-  }
-  try {
-    const sess = await mongoose.startSession();
-    sess.startTransaction();
-    await volunteer.save({ session: sess });
-    await sess.commitTransaction();
-  } catch (err) {
-    const error = new HttpError(
-      "Something went wrong, could not update volunteer status.",
-      500
-    );
-    return next(error);
-  }
-  res.status(201).json({ item: volunteer });
-};
-
-const declineVolunteer = async (req, res, next) => {
-  const _id = req.params.uid;
-  let volunteer;
-  try {
-    volunteer = await Volunteer.findById(_id);
-    volunteer.status = "Declined";
+    if (approve) {
+      volunteer.status = "Approved";
+    } else {
+      volunteer.status = "Declined";
+    }
   } catch (err) {
     const error = new HttpError("Something went wrong. Please try again.", 500);
     return next(error);
@@ -255,5 +234,4 @@ exports.completeDonationRequest = completeDonationRequest;
 exports.ngoInventory = ngoInventory;
 exports.volunteersUnderNgo = volunteersUnderNgo;
 exports.volunteersNotApproved = volunteersNotApproved;
-exports.approveVolunteer = approveVolunteer;
-exports.declineVolunteer = declineVolunteer;
+exports.approveOrDeclineVolunteer = approveOrDeclineVolunteer;

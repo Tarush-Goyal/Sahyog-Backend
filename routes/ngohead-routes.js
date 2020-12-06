@@ -13,7 +13,10 @@ router.get(
   "/volunteersNotApproved/:uid",
   ngoheadController.volunteersNotApproved
 );
-router.post("/approveVolunteer/:uid", ngoheadController.approveVolunteer);
-router.post("/declineVolunteer/:uid", ngoheadController.declineVolunteer);
+
+router.post(
+  "/approveOrDeclineVolunteer",
+  ngoheadController.approveOrDeclineVolunteer
+);
 
 module.exports = router;

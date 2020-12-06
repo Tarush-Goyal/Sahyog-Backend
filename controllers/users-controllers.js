@@ -199,7 +199,7 @@ const login = async (req, res, next) => {
 
   let token;
   try {
-    if (existingUser.type == "Volunteer") {
+    if (existingUser.type == "volunteer") {
       let existingVolunteer = await Volunteer.findOne({
         email: existingUser.email,
       });
