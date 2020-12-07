@@ -13,7 +13,6 @@ router.get(
   "/volunteersNotApproved/:uid",
   ngoheadController.volunteersNotApproved
 );
-
 router.post(
   "/approveOrDeclineVolunteer",
   ngoheadController.approveOrDeclineVolunteer

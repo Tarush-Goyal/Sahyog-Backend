@@ -70,7 +70,9 @@ const ngoHistory = async (req, res, next) => {
     return next(err);
   }
   if (!volunteersUnderNGO || volunteersUnderNGO.volunteers.length == 0) {
-    return next(new HttpError("Error.", 404));
+    return next(
+      new HttpError("There are no current volunteers in your NGO.", 404)
+    );
   }
   let ans = [];
   volunteersunderNGO.volunteers.forEach((v) => {
@@ -113,7 +115,9 @@ const ngoInventory = async (req, res, next) => {
     return next(err);
   }
   if (!volunteersUnderNGO || volunteersUnderNGO.volunteers.length === 0) {
-    return next(new HttpError("Error.", 404));
+    return next(
+      new HttpError("There are no current volunteers in your NGO.", 404)
+    );
   }
   let ans = [];
   volunteersUnderNGO.volunteers.forEach((v) => {
@@ -122,11 +126,6 @@ const ngoInventory = async (req, res, next) => {
     });
   });
   res.json({ items: ans });
-  /*res.json({
-    items: volunteersUnderNGO.volunteers.map((item) =>
-      item.toObject({ getters: true })
-    ),
-  });*/
 };
 
 //Volunteers under Ngo

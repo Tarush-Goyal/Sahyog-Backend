@@ -39,7 +39,7 @@ const getDonatedItemsByUserId = async (req, res, next) => {
   } catch (err) {
     console.log(err);
     const error = new HttpError(
-      "Fetching places failed, please try again later.",
+      "Fetching items failed, please try again later.",
       500
     );
     return next(error);
@@ -68,7 +68,7 @@ const HomeOwnerIdCard = async (req, res, next) => {
     homeowner = HomeOwner.findOne({ email: user.email });
   } catch (err) {
     console.log(err);
-    const error = new HttpError("error", 500);
+    const error = new HttpError("Error something went wrong.", 500);
     return next(error);
   }
   res.json({ items: homeowner });
@@ -105,10 +105,7 @@ const donateItem = async (req, res, next) => {
     user = await User.findById(req.userData.userId);
     homeowner = await HomeOwner.findOne({ email: user.email });
   } catch (err) {
-    const error = new HttpError(
-      "Creating place failed, please try again.",
-      500
-    );
+    const error = new HttpError("Creating Item failed, please try again.", 500);
     return next(error);
   }
 
@@ -137,10 +134,7 @@ const donateItem = async (req, res, next) => {
     await sess.commitTransaction();
   } catch (err) {
     console.log(err);
-    const error = new HttpError(
-      "Creating place failed, please try again.",
-      500
-    );
+    const error = new HttpError("Creating item failed, please try again.", 500);
     return next(error);
   }
 

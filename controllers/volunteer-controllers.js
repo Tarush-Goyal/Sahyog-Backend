@@ -134,7 +134,7 @@ const itemsPickedByVolunteerId = async (req, res, next) => {
   } catch (err) {
     console.log(err);
     const error = new HttpError(
-      "Fetching places failed, please try again later.",
+      "Fetching items failed, please try again later.",
       500
     );
     return next(error);
@@ -183,7 +183,7 @@ const volunteerLeaderBoard = async (req, res, next) => {
     return next(error);
   }
   if (!volunteersUnderNGO || volunteersUnderNGO.volunteers.length == 0) {
-    return next(new HttpError("Error.", 404));
+    return next(new HttpError("There are no volunteers in your ngo.", 404));
   }
 
   res.json({
@@ -203,7 +203,7 @@ const volunteerIdCard = async (req, res, next) => {
     // volunteer = Volunteer.findOne({ email: user.email });
   } catch (err) {
     console.log(err);
-    const error = new HttpError("error", 500);
+    const error = new HttpError("There are no volunteers in your ngo.", 500);
     return next(error);
   }
   res.json(volunteer);
