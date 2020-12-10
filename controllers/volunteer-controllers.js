@@ -32,6 +32,7 @@ const activeDonationRequest = async (req, res, next) => {
 
 //accept donation requests
 const acceptDonationRequest = async (req, res, next) => {
+  console.log("entered");
   const { _id, volunteerId } = req.body;
   let existingItem;
   let existingVolunteer;

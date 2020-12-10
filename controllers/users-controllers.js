@@ -134,11 +134,11 @@ const signup = async (req, res, next) => {
 
     let token;
     try {
-      if (type == "volunteer") {
-        return next(
-          new HttpError("Wait until your NGO Head approves you.", 404)
-        );
-      }
+      // if (type == "volunteer") {
+      //   return next(
+      //     new HttpError("Wait until your NGO Head approves you.", 404)
+      //   );
+      // }
       token = jwt.sign(
         { userId: createdUser.id, email: createdUser.email },
         process.env.JWT_KEY,

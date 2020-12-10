@@ -17,6 +17,6 @@ router.get(
 router.get("/volunteerId/:uid", volunteerController.volunteerIdCard);
 router.get("/activeDonationRequest", volunteerController.activeDonationRequest);
 router.post("/acceptRequest", volunteerController.acceptDonationRequest);
-router.post("/pickRequest", volunteerController.pickDonationRequest);
+router.post("/pickRequest/:uid", volunteerController.pickDonationRequest);
 
 module.exports = router;
