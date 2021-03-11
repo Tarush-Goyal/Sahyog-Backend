@@ -9,7 +9,7 @@ const usersRoutes = require("./routes/users-routes");
 const homeownerRoutes = require("./routes/homeowner-routes");
 const volunteerRoutes = require("./routes/volunteer-routes");
 const ngoheadRoutes = require("./routes/ngohead-routes");
-
+const upload = require("./middleware/mongodb-file-upload");
 const HttpError = require("./models/http-error");
 
 const app = express();
@@ -57,10 +57,6 @@ mongoose
     // `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@sahyog.stq6x.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
     `mongodb+srv://SahyogAdmin:${process.env.DB_PASSWORD}@sahyog.upfyh.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
   )
-  //  "DB_USER": "SahyogAdmin",
-  //   "DB_PASSWORD": "Sahyog123",
-  //  "DB_USER": "Harsh",
-  //   "DB_PASSWORD": "Mx7piYzfzDvBMpDD",
   .then(() => {
     app.listen(process.env.PORT || 5000);
   })
