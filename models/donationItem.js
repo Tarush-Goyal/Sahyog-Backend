@@ -27,6 +27,7 @@ const itemSchema = new Schema({
     type: String,
     default: undefined,
   },
+  imageGrid: { type: String },
 });
 
 module.exports = mongoose.model("Item", itemSchema);

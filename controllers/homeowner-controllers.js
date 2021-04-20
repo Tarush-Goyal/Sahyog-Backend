@@ -88,6 +88,7 @@ const donateItem = async (req, res, next) => {
     house,
     date,
     image,
+    imageGrid,
   } = req.body;
 
   const address = {
@@ -113,6 +114,7 @@ const donateItem = async (req, res, next) => {
     const error = new HttpError("Could not find user for provided id.", 404);
     return next(error);
   }
+  console.log("imageGrid:" + imageGrid);
 
   const donatedItem = new Item({
     itemName: itemName,
@@ -123,6 +125,7 @@ const donateItem = async (req, res, next) => {
     image: req.file.path,
     userId: homeowner.id,
     status: "Pending",
+    imageGrid: imageGrid,
   });
 
   try {

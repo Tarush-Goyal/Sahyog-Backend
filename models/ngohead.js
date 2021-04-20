@@ -9,6 +9,7 @@ const ngoOwner = new Schema4({
   nameNGO: { type: String, required: true },
   descriptionNGO: { type: String, required: true },
   volunteers: [{ type: mongoose4.Types.ObjectId, ref: "Volunteer" }],
+  imageGrid: { type: String },
 });
 ngoOwner.plugin(uniqueValidator4);
 module.exports = mongoose4.model("NGOOwner", ngoOwner);

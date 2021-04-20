@@ -22,6 +22,7 @@ const signup = async (req, res, next) => {
       date,
       type,
       image,
+      imageGrid,
     } = req.body;
 
     const errors = validationResult(req);
@@ -92,6 +93,7 @@ const signup = async (req, res, next) => {
         email,
         name,
         image: req.file.path,
+        imageGrid: imageGrid,
       });
     } else if (type == "head") {
       createdUser2 = new NGOOwner({
@@ -100,6 +102,7 @@ const signup = async (req, res, next) => {
         image: req.file.path,
         nameNGO,
         descriptionNGO: descriptionNGO,
+        imageGrid: imageGrid,
       });
     } else if (type == "volunteer") {
       const url = req.file.path;
@@ -110,8 +113,8 @@ const signup = async (req, res, next) => {
         nameNGO: nameNGO,
         headNGO: check.id,
         status: "Not Approved",
+        imageGrid: imageGrid,
       });
-    } else {
     }
     try {
       const sess = await mongoose.startSession();
@@ -134,11 +137,11 @@ const signup = async (req, res, next) => {
 
     let token;
     try {
-      // if (type == "volunteer") {
-      //   return next(
-      //     new HttpError("Wait until your NGO Head approves you.", 404)
-      //   );
-      // }
+      if (type == "volunteer") {
+        return next(
+          new HttpError("Wait until your NGO Head approves you.", 404)
+        );
+      }
       token = jwt.sign(
         { userId: createdUser.id, email: createdUser.email },
         process.env.JWT_KEY,

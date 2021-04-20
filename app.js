@@ -4,7 +4,7 @@ const path = require("path");
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-
+const uploadRoutes = require("./routes/upload-routes");
 const usersRoutes = require("./routes/users-routes");
 const homeownerRoutes = require("./routes/homeowner-routes");
 const volunteerRoutes = require("./routes/volunteer-routes");
@@ -29,6 +29,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use("/api/uploads", uploadRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/homeowner", homeownerRoutes);
 app.use("/api/volunteer", volunteerRoutes);

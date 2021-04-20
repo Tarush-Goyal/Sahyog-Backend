@@ -8,6 +8,7 @@ const homeOwner = new Schema2({
   name: { type: String, required: true },
   image: { type: String, required: true },
   items: [{ type: mongoose2.Types.ObjectId, required: true, ref: "Item" }],
+  imageGrid: { type: String },
 });
 
 homeOwner.plugin(uniqueValidator2);
