@@ -9,12 +9,16 @@ const usersRoutes = require("./routes/users-routes");
 const homeownerRoutes = require("./routes/homeowner-routes");
 const volunteerRoutes = require("./routes/volunteer-routes");
 const ngoheadRoutes = require("./routes/ngohead-routes");
+const fundraiserRoutes = require("./routes/fundraiser-routes");
 const upload = require("./middleware/mongodb-file-upload");
 const HttpError = require("./models/http-error");
+const cors = require("cors");
 
 const app = express();
 
+app.use(cors());
 app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use("/uploads/images", express.static(path.join("uploads", "images")));
 
@@ -34,6 +38,7 @@ app.use("/api/users", usersRoutes);
 app.use("/api/homeowner", homeownerRoutes);
 app.use("/api/volunteer", volunteerRoutes);
 app.use("/api/ngohead", ngoheadRoutes);
+app.use("/api/fundraiser", fundraiserRoutes);
 
 app.use((req, res, next) => {
   const error = new HttpError("Could not find this route.", 404);

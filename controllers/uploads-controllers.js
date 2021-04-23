@@ -43,8 +43,6 @@ const fetchImage = async (req, res) => {
 
     // Check if image
     if (file.contentType === "image/jpeg" || file.contentType === "image/png") {
-      // Read output to browser
-      console.log("image found");
       const readstream = gfs.createReadStream(file.filename);
       readstream.pipe(res);
     } else {
