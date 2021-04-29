@@ -81,11 +81,6 @@ const ngoHistory = async (req, res, next) => {
     });
   });
   res.json({ items: ans });
-  /*res.json({
-    items: volunteersUnderNGO.volunteers.map((item) =>
-      item.toObject({ getters: true })
-    ),
-  });*/
 };
 
 //NGO inventory
