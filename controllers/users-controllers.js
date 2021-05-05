@@ -243,5 +243,36 @@ const login = async (req, res, next) => {
   });
 };
 
+const getNgoNames = async (req, res, next) => {
+  // console.log("ngos");
+  let ngos;
+  try {
+    ngos = await NGOOwner.find({});
+    console.log(ngos);
+  } catch (err) {
+    const error = new HttpError("could not find ngos", 404);
+    return next(error);
+  }
+  res.json({
+    ngos: ngos.map((ngo) => ngo.toObject({ getters: true })),
+  });
+};
+
+const getEmails = async (req, res, next) => {
+  let users;
+  try {
+    users = await User.find({});
+    console.log(users);
+  } catch (err) {
+    const error = new HttpError("could not find users", 404);
+    return next(error);
+  }
+  res.json({
+    users: users.map((user) => user.toObject({ getters: true })),
+  });
+};
+
 exports.signup = signup;
 exports.login = login;
+exports.getNgoNames = getNgoNames;
+exports.getEmails = getEmails;

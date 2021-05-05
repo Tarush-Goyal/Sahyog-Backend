@@ -8,6 +8,9 @@ const upload = require("../middleware/mongodb-file-upload");
 
 const router = express.Router();
 
+router.get("/ngos", usersController.getNgoNames);
+router.get("/emails", usersController.getEmails);
+
 router.post(
   "/signup",
   fileUpload.single("image"),
