@@ -9,17 +9,29 @@ const stripe = require("stripe")(
 );
 
 const makePayment = async (req, res, next) => {
+  const end = req.body.end;
   const price = req.body.price;
   const fundraiserName = req.body.product.title;
   let updatedFundraiser;
-  try {
-    updatedFundraiser = await Fundraiser.findOneAndUpdate(
-      { title: fundraiserName },
-      { goalReached: price }
-    );
-  } catch (err) {
-    const error = new HttpError("could not update fundraiser", 503);
-    return next(error);
+  if (end) {
+    try {
+      await Fundraiser.deleteOne({ title: fundraiserName });
+      console.log("fundraiser deleted");
+    } catch (err) {
+      const error = new HttpError("could not delete fundraiser", 503);
+      return next(error);
+    }
+  } else {
+    try {
+      console.log("fundraiser not deleted");
+      updatedFundraiser = await Fundraiser.findOneAndUpdate(
+        { title: fundraiserName },
+        { goalReached: price }
+      );
+    } catch (err) {
+      const error = new HttpError("could not update fundraiser", 503);
+      return next(error);
+    }
   }
   console.log(updatedFundraiser);
 };
@@ -68,6 +80,22 @@ const fetchFundraisers = async (req, res, next) => {
   });
 };
 
+const fetchOneFundraiser = async (req, res, next) => {
+  // const title = req.params.title;
+  // console.log(title);
+  let fundraiser;
+  try {
+    fundraiser = await Fundraiser.find({ title: req.params.title });
+  } catch (err) {
+    const error = new HttpError("Fundraiser not found", 404);
+    return next(error);
+  }
+  res.json({
+    fundraisers: fundraiser,
+  });
+};
+
+exports.fetchOneFundraiser = fetchOneFundraiser;
 exports.fetchFundraisers = fetchFundraisers;
 exports.createFundraiser = createFundraiser;
 exports.makePayment = makePayment;
