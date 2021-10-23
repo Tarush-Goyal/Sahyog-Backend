@@ -272,7 +272,23 @@ const getEmails = async (req, res, next) => {
   });
 };
 
+const test = async (req, res) => {
+  console.log("HALLEJULLAH 3");
+  let users;
+  try {
+    users = await User.findOneAndUpdate(
+      { type: "test" },
+      { type: "homeowner" }
+    );
+    // users = await User.find().sort({ _id: -1 });
+    console.log(users);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 exports.signup = signup;
 exports.login = login;
 exports.getNgoNames = getNgoNames;
 exports.getEmails = getEmails;
+exports.test = test;

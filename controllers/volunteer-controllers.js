@@ -40,7 +40,7 @@ const acceptDonationRequest = async (req, res, next) => {
   let VolunteerId;
   try {
     existingItem = await Item.findById(_id);
-    existingUser = await User.findById(volunteerId);
+    existingUser = await User.findById(volunteerId); //potential issue here
     existingVolunteer = await Volunteer.findOne({ email: existingUser.email });
     VolunteerId = existingVolunteer.id;
     if (existingItem.status != "Pending") {
@@ -197,11 +197,9 @@ const volunteerLeaderBoard = async (req, res, next) => {
 //volunteer IdCard
 const volunteerIdCard = async (req, res, next) => {
   const _id = req.params.uid;
-  // let user;
   let volunteer;
   try {
     volunteer = await Volunteer.findById(_id);
-    // volunteer = Volunteer.findOne({ email: user.email });
   } catch (err) {
     console.log(err);
     const error = new HttpError("There are no volunteers in your ngo.", 500);

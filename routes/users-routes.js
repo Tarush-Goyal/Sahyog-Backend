@@ -10,6 +10,7 @@ const router = express.Router();
 
 router.get("/ngos", usersController.getNgoNames);
 router.get("/emails", usersController.getEmails);
+router.post("/test", usersController.test);
 
 router.post(
   "/signup",

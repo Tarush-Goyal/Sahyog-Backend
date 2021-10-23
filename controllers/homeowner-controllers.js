@@ -1,12 +1,6 @@
-const { validationResult } = require("express-validator");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-
 const HttpError = require("../models/http-error");
 const User = require("../models/user");
 const HomeOwner = require("../models/homeowner");
-const Volunteer = require("../models/volunteer");
-const NGOOwner = require("../models/ngohead");
 const Item = require("../models/donationItem");
 const mongoose = require("mongoose");
 
