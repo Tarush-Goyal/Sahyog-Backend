@@ -8,10 +8,15 @@ const mongoose = require("mongoose");
 
 //Complete donation
 const completeDonationRequest = async (req, res, next) => {
-  const { _id, quantity } = req.body;
+  const {_id, quantity, user_id} = req.body;
   let existingItem;
+  let existingUser;
+  let ngo;
+  let dc;
   try {
     existingItem = await Item.findById(_id);
+    existingUser = await User.findById(user_id);
+    ngo = await NGOOwner.find({email: existingUser.email});
     if (existingItem.status != "Picked Up") {
       const error = new HttpError("Error 404.", 404);
       return next(error);
@@ -26,11 +31,23 @@ const completeDonationRequest = async (req, res, next) => {
   existingItem.quantity = quantity;
   if (quantity == "0") {
     existingItem.status = "Completed";
+    try {
+      await NGOOwner.updateOne(
+        {email: existingUser.email},
+        {$inc: {donationsCompleted: 1}}
+      );
+    } catch (err) {
+      const error = new HttpError(
+        "Something went wrong, could not update ngo status.",
+        500
+      );
+      return next(error);
+    }
   }
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
-    await existingItem.save({ session: sess });
+    await existingItem.save({session: sess});
     await sess.commitTransaction();
   } catch (err) {
     const error = new HttpError(
@@ -39,7 +56,7 @@ const completeDonationRequest = async (req, res, next) => {
     );
     return next(error);
   }
-  res.status(201).json({ item: existingItem });
+  res.status(201).json({item: existingItem});
 };
 
 //History of Ngo
@@ -49,19 +66,17 @@ const ngoHistory = async (req, res, next) => {
   let volunteersUnderNGO;
   try {
     user = await User.findById(_id);
-    volunteersUnderNGO = await NGOOwner.findOne({ email: user.email }).populate(
-      {
-        path: "volunteers",
-        model: "Volunteer",
-        match: {
-          status: "Approved",
-        },
-        populate: {
-          path: "donationAccepted",
-          model: "Item",
-        },
+    volunteersUnderNGO = await NGOOwner.findOne({email: user.email}).populate({
+      path: "volunteers",
+      model: "Volunteer",
+      match: {
+        status: "Approved"
+      },
+      populate: {
+        path: "donationAccepted",
+        model: "Item"
       }
-    );
+    });
   } catch (err) {
     return next(err);
   }
@@ -71,12 +86,12 @@ const ngoHistory = async (req, res, next) => {
     );
   }
   let ans = [];
-  volunteersunderNGO.volunteers.forEach((v) => {
-    v.donationAccepted.forEach((i) => {
+  volunteersunderNGO.volunteers.forEach(v => {
+    v.donationAccepted.forEach(i => {
       ans.push(i);
     });
   });
-  res.json({ items: ans });
+  res.json({items: ans});
 };
 
 //NGO inventory
@@ -86,22 +101,20 @@ const ngoInventory = async (req, res, next) => {
   let volunteersUnderNGO;
   try {
     user = await User.findById(_id);
-    volunteersUnderNGO = await NGOOwner.findOne({ email: user.email }).populate(
-      {
-        path: "volunteers",
-        model: "Volunteer",
+    volunteersUnderNGO = await NGOOwner.findOne({email: user.email}).populate({
+      path: "volunteers",
+      model: "Volunteer",
+      match: {
+        status: "Approved"
+      },
+      populate: {
+        path: "donationAccepted",
+        model: "Item",
         match: {
-          status: "Approved",
-        },
-        populate: {
-          path: "donationAccepted",
-          model: "Item",
-          match: {
-            status: "Picked Up",
-          },
-        },
+          status: "Picked Up"
+        }
       }
-    );
+    });
   } catch (err) {
     return next(err);
   }
@@ -111,12 +124,12 @@ const ngoInventory = async (req, res, next) => {
     );
   }
   let ans = [];
-  volunteersUnderNGO.volunteers.forEach((v) => {
-    v.donationAccepted.forEach((i) => {
+  volunteersUnderNGO.volunteers.forEach(v => {
+    v.donationAccepted.forEach(i => {
       ans.push(i);
     });
   });
-  res.json({ items: ans });
+  res.json({items: ans});
 };
 
 //Volunteers under Ngo
@@ -127,20 +140,20 @@ const volunteersUnderNgo = async (req, res, next) => {
   try {
     user = await User.findById(_id);
     volunteersunderNGO = await NGOOwner.findOne({
-      email: user.email,
+      email: user.email
     }).populate({
       path: "volunteers",
       model: "Volunteer",
       match: {
-        status: "Approved",
+        status: "Approved"
       },
       populate: {
         path: "donationAccepted",
         model: "Item",
         match: {
-          status: "Picked Up",
-        },
-      },
+          status: "Picked Up"
+        }
+      }
     });
   } catch (err) {
     const error = new HttpError("Something went wrong. Please try again.", 500);
@@ -153,9 +166,9 @@ const volunteersUnderNgo = async (req, res, next) => {
   }
 
   res.json({
-    items: volunteersunderNGO.volunteers.map((item) =>
-      item.toObject({ getters: true })
-    ),
+    items: volunteersunderNGO.volunteers.map(item =>
+      item.toObject({getters: true})
+    )
   });
 };
 
@@ -165,15 +178,13 @@ const volunteersNotApproved = async (req, res, next) => {
   let volunteersunderNGO;
   try {
     user = await User.findById(_id);
-    volunteersunderNGO = await NGOOwner.findOne({ email: user.email }).populate(
-      {
-        path: "volunteers",
-        model: "Volunteer",
-        match: {
-          status: "Not Approved",
-        },
+    volunteersunderNGO = await NGOOwner.findOne({email: user.email}).populate({
+      path: "volunteers",
+      model: "Volunteer",
+      match: {
+        status: "Not Approved"
       }
-    );
+    });
   } catch (err) {
     const error = new HttpError("Something went wrong. Please try again.", 500);
     return next(error);
@@ -185,14 +196,14 @@ const volunteersNotApproved = async (req, res, next) => {
   }
 
   res.json({
-    items: volunteersunderNGO.volunteers.map((item) =>
-      item.toObject({ getters: true })
-    ),
+    items: volunteersunderNGO.volunteers.map(item =>
+      item.toObject({getters: true})
+    )
   });
 };
 
 const approveOrDeclineVolunteer = async (req, res, next) => {
-  const { _id, approve } = req.body;
+  const {_id, approve} = req.body;
   let volunteer;
   try {
     volunteer = await Volunteer.findById(_id);
@@ -208,7 +219,7 @@ const approveOrDeclineVolunteer = async (req, res, next) => {
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
-    await volunteer.save({ session: sess });
+    await volunteer.save({session: sess});
     await sess.commitTransaction();
   } catch (err) {
     const error = new HttpError(
@@ -217,7 +228,7 @@ const approveOrDeclineVolunteer = async (req, res, next) => {
     );
     return next(error);
   }
-  res.status(201).json({ item: volunteer });
+  res.status(201).json({item: volunteer});
 };
 
 exports.completeDonationRequest = completeDonationRequest;

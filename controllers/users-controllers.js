@@ -102,6 +102,9 @@ const signup = async (req, res, next) => {
         image: req.file.path,
         nameNGO,
         descriptionNGO: descriptionNGO,
+        donationsAccepted: 0,
+        donationsCompleted: 0,
+        donationsType: [],
         imageGrid: imageGrid,
       });
     } else if (type == "volunteer") {
@@ -170,6 +173,20 @@ const signup = async (req, res, next) => {
 const login = async (req, res, next) => {
   const { email, password } = req.body;
   let existingUser;
+  if(email=='admin@sahyog.com'){
+    token = jwt.sign(
+      { userId: 'admin', email: email },
+      process.env.JWT_KEY,
+      { expiresIn: "1h" }
+    );
+
+    res.json({
+      userId: 'admin',
+      email: email,
+      token: token,
+      type: 'admin',
+    });
+  } else {
 
   try {
     existingUser = await User.findOne({ email: email });
@@ -207,7 +224,6 @@ const login = async (req, res, next) => {
     );
     return next(error);
   }
-
   let token;
   try {
     if (existingUser.type == "volunteer") {
@@ -241,10 +257,10 @@ const login = async (req, res, next) => {
     token: token,
     type: existingUser.type,
   });
+}
 };
 
 const getNgoNames = async (req, res, next) => {
-  // console.log("ngos");
   let ngos;
   try {
     ngos = await NGOOwner.find({});
@@ -280,7 +296,6 @@ const test = async (req, res) => {
       { type: "test" },
       { type: "homeowner" }
     );
-    // users = await User.find().sort({ _id: -1 });
     console.log(users);
   } catch (err) {
     console.log(err);

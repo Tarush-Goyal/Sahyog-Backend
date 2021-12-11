@@ -10,6 +10,7 @@ const homeownerRoutes = require("./routes/homeowner-routes");
 const volunteerRoutes = require("./routes/volunteer-routes");
 const ngoheadRoutes = require("./routes/ngohead-routes");
 const fundraiserRoutes = require("./routes/fundraiser-routes");
+const adminRoutes = require("./routes/admin-routes");
 const upload = require("./middleware/mongodb-file-upload");
 const HttpError = require("./models/http-error");
 const cors = require("cors");
@@ -39,6 +40,7 @@ app.use("/api/homeowner", homeownerRoutes);
 app.use("/api/volunteer", volunteerRoutes);
 app.use("/api/ngohead", ngoheadRoutes);
 app.use("/api/fundraiser", fundraiserRoutes);
+app.use("/api/admin",adminRoutes);
 
 app.use((req, res, next) => {
   const error = new HttpError("Could not find this route.", 404);

@@ -1,4 +1,4 @@
-const { validationResult } = require("express-validator");
+const {validationResult} = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -24,24 +24,26 @@ const activeDonationRequest = async (req, res, next) => {
   }
 
   let filtered = [];
-  items.forEach((x) => {
+  items.forEach(x => {
     if (x.status == "Pending") filtered.push(x);
   });
-  res.json({ items: filtered });
+  res.json({items: filtered});
 };
 
 //accept donation requests
 const acceptDonationRequest = async (req, res, next) => {
   console.log("entered");
-  const { _id, volunteerId } = req.body;
+  const {_id, volunteerId} = req.body;
   let existingItem;
   let existingVolunteer;
   let existingUser;
+  let ngo;
   let VolunteerId;
   try {
     existingItem = await Item.findById(_id);
     existingUser = await User.findById(volunteerId); //potential issue here
-    existingVolunteer = await Volunteer.findOne({ email: existingUser.email });
+    existingVolunteer = await Volunteer.findOne({email: existingUser.email});
+    ngo = await NGOOwner.findOne({nameNGO: existingVolunteer.nameNGO});
     VolunteerId = existingVolunteer.id;
     if (existingItem.status != "Pending") {
       const error = new HttpError(
@@ -61,12 +63,15 @@ const acceptDonationRequest = async (req, res, next) => {
   existingItem.otp = num.toString();
   existingItem.status = "Active";
   existingItem.assignedVolunteer = VolunteerId;
+  ngo.donationsAccepted=ngo.donationsAccepted+1;
+  await ngo.donationsType.push(existingItem.category);
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
-    await existingItem.save({ session: sess });
+    await existingItem.save({session: sess});
+    await ngo.save({session:sess});
     await existingVolunteer.donationAccepted.push(existingItem);
-    await existingVolunteer.save({ session: sess });
+    await existingVolunteer.save({session: sess});
     await sess.commitTransaction();
   } catch (err) {
     console.log(err);
@@ -76,7 +81,7 @@ const acceptDonationRequest = async (req, res, next) => {
     );
     return next(error);
   }
-  res.status(201).json({ item: existingItem });
+  res.status(201).json({item: existingItem});
 };
 
 //pick donation request
@@ -103,7 +108,7 @@ const pickDonationRequest = async (req, res, next) => {
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
-    await existingItem.save({ session: sess });
+    await existingItem.save({session: sess});
     await sess.commitTransaction();
   } catch (err) {
     const error = new HttpError(
@@ -112,7 +117,7 @@ const pickDonationRequest = async (req, res, next) => {
     );
     return next(error);
   }
-  res.status(201).json({ item: existingItem });
+  res.status(201).json({item: existingItem});
 };
 
 //volunteer History
@@ -122,15 +127,13 @@ const itemsPickedByVolunteerId = async (req, res, next) => {
   let volunteerWithItems;
   try {
     user = await User.findById(_id);
-    volunteerWithItems = await Volunteer.findOne({
-      email: user.email,
-    }).populate({
+    volunteerWithItems = await Volunteer.findOne({email: user.email}).populate({
       path: "donationAccepted",
       model: "Item",
       populate: {
         path: "userId",
-        model: "HomeOwner",
-      },
+        model: "HomeOwner"
+      }
     });
   } catch (err) {
     console.log(err);
@@ -150,9 +153,9 @@ const itemsPickedByVolunteerId = async (req, res, next) => {
     );
   }
   res.json({
-    items: volunteerWithItems.donationAccepted.map((item) =>
-      item.toObject({ getters: true })
-    ),
+    items: volunteerWithItems.donationAccepted.map(item =>
+      item.toObject({getters: true})
+    )
   });
 };
 
@@ -164,21 +167,21 @@ const volunteerLeaderBoard = async (req, res, next) => {
   let volunteersUnderNGO;
   try {
     user = await User.findById(_id);
-    volunteer = await Volunteer.findOne({ email: user.email });
+    volunteer = await Volunteer.findOne({email: user.email});
     console.log(volunteer.headNGO);
     volunteersUnderNGO = await NGOOwner.findById(volunteer.headNGO).populate({
       path: "volunteers",
       model: "Volunteer",
       match: {
-        status: "Approved",
+        status: "Approved"
       },
       populate: {
         path: "donationAccepted",
         model: "Item",
         match: {
-          status: "Picked Up",
-        },
-      },
+          status: "Picked Up"
+        }
+      }
     });
   } catch (error) {
     return next(error);
@@ -188,9 +191,9 @@ const volunteerLeaderBoard = async (req, res, next) => {
   }
 
   res.json({
-    items: volunteersUnderNGO.volunteers.map((item) =>
-      item.toObject({ getters: true })
-    ),
+    items: volunteersUnderNGO.volunteers.map(item =>
+      item.toObject({getters: true})
+    )
   });
 };
 
