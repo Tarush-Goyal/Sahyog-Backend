@@ -11,7 +11,7 @@ For more information: [Sahyog Documentation](https://drive.google.com/file/d/1zT
 
 1) Run `npm i` to first install required node modules and dependencies.
 2) Run `npm start` to start the frontend server.
-3) Development server will start at http://localhost:5000/.
+3) Development server will start at `http://localhost:5000/.`
 4) The app will automatically reload if you change any of the source files.
 
 ## Sample
