@@ -1,6 +1,6 @@
 # Sahyog-Backend
 
-This is the server-side code for the MERN Stack Project Sahyog. For the client-side code, please click here: [Sahyog-Backend](https://github.com/Tarush-Goyal/Sahyog-Frontend).
+This is the server-side code for the MERN Stack Project Sahyog. For the client-side code, please click here: [Sahyog-Frontend](https://github.com/Tarush-Goyal/Sahyog-Frontend).
 
 ## What is Sahyog?
 Sahyog connects individuals with NGOs working for the poor in India. It acts as an NGO aggregator where homeowners can donate their items such as stationary, clothes and other things, and an NGO volunteer will be assigned to them. NGO volunteer will pick up the item from the address provided by entering the correct OTP and will further donate the items to the needy.
