@@ -14,6 +14,7 @@ router.get(
   "/itemsAcceptedByVolunteerId/:uid",
   volunteerController.itemsPickedByVolunteerId
 );
+router.get("/singlevolunteerdetails/:uid",volunteerController.singleVolunteerDetails);
 router.get("/volunteerId/:uid", volunteerController.volunteerIdCard);
 router.get("/activeDonationRequest", volunteerController.activeDonationRequest);
 router.post("/acceptRequest", volunteerController.acceptDonationRequest);

@@ -7,11 +7,11 @@ const volunteer = new Schema3({
   email: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   nameNGO: { type: String, required: true },
+  approval: {type: String, required: true},
   headNGO: { type: mongoose3.Types.ObjectId, required: true, ref: "NGOOwner" },
   donationAccepted: [
     { type: mongoose3.Types.ObjectId, required: true, ref: "Item" },
   ],
-  status: { type: String, required: true },
   imageGrid: { type: String },
 });
 volunteer.plugin(uniqueValidator3);

@@ -9,6 +9,7 @@ const Volunteer = require("../models/volunteer");
 const NGOOwner = require("../models/ngohead");
 const Item = require("../models/donationItem");
 const mongoose = require("mongoose");
+const { single } = require("../middleware/file-upload");
 
 //active donation requests
 const activeDonationRequest = async (req, res, next) => {
@@ -126,8 +127,7 @@ const itemsPickedByVolunteerId = async (req, res, next) => {
   let user;
   let volunteerWithItems;
   try {
-    user = await User.findById(_id);
-    volunteerWithItems = await Volunteer.findOne({email: user.email}).populate({
+    volunteerWithItems = await Volunteer.findById(_id).populate({
       path: "donationAccepted",
       model: "Item",
       populate: {
@@ -211,9 +211,26 @@ const volunteerIdCard = async (req, res, next) => {
   res.json(volunteer);
 };
 
+const singleVolunteerDetails = async (req, res, next) => {
+  console.log("entered single volunteer")
+  const _id = req.params.uid;
+  console.log(_id)
+  let volunteer;
+  try {
+    volunteer = await Volunteer.findById(_id);
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("There are no volunteers in your ngo.", 500);
+    return next(error);
+  }
+  console.log(volunteer)
+  res.json(volunteer);
+}
+
 exports.activeDonationRequest = activeDonationRequest;
 exports.acceptDonationRequest = acceptDonationRequest;
 exports.pickDonationRequest = pickDonationRequest;
 exports.itemsPickedByVolunteerId = itemsPickedByVolunteerId;
 exports.volunteerIdCard = volunteerIdCard;
 exports.volunteerLeaderBoard = volunteerLeaderBoard;
+exports.singleVolunteerDetails = singleVolunteerDetails;

@@ -70,7 +70,7 @@ const ngoHistory = async (req, res, next) => {
       path: "volunteers",
       model: "Volunteer",
       match: {
-        status: "Approved"
+        approval: "approved"
       },
       populate: {
         path: "donationAccepted",
@@ -105,7 +105,7 @@ const ngoInventory = async (req, res, next) => {
       path: "volunteers",
       model: "Volunteer",
       match: {
-        status: "Approved"
+        approval: "approved"
       },
       populate: {
         path: "donationAccepted",
@@ -120,7 +120,7 @@ const ngoInventory = async (req, res, next) => {
   }
   if (!volunteersUnderNGO || volunteersUnderNGO.volunteers.length === 0) {
     return next(
-      new HttpError("There are no current volunteers in your NGO.", 404)
+      new HttpError("Unable to retrieve NGO inventory.", 404)
     );
   }
   let ans = [];
@@ -145,7 +145,7 @@ const volunteersUnderNgo = async (req, res, next) => {
       path: "volunteers",
       model: "Volunteer",
       match: {
-        status: "Approved"
+        approval: "approved"
       },
       populate: {
         path: "donationAccepted",
@@ -182,7 +182,7 @@ const volunteersNotApproved = async (req, res, next) => {
       path: "volunteers",
       model: "Volunteer",
       match: {
-        status: "Not Approved"
+        approval: "pending"
       }
     });
   } catch (err) {
@@ -208,9 +208,9 @@ const approveOrDeclineVolunteer = async (req, res, next) => {
   try {
     volunteer = await Volunteer.findById(_id);
     if (approve) {
-      volunteer.status = "Approved";
+      volunteer.approval = "approved";
     } else {
-      volunteer.status = "Declined";
+      volunteer.approval = "rejected";
     }
   } catch (err) {
     const error = new HttpError("Something went wrong. Please try again.", 500);

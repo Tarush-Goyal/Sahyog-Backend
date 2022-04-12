@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
@@ -63,7 +62,8 @@ app.use((error, req, res, next) => {
 mongoose
   .connect(
     // `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@sahyog.stq6x.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
-    `mongodb+srv://SahyogAdmin:${process.env.DB_PASSWORD}@sahyog.upfyh.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
+   // `mongodb+srv://SahyogAdmin:3wDezU0CHVapQUVv@sahyog.upfyh.mongodb.net/Sahyog?retryWrites=true&w=majority`
+    `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@sahyog.upfyh.mongodb.net/Sahyog?retryWrites=true&w=majority`
   )
   .then(() => {
     app.listen(process.env.PORT || 5000);

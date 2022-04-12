@@ -41,10 +41,13 @@ const updatePreferredType = async (req,res,next) => {
 }
 
 const sendPreferred = async (req,res,next) =>{
+  const name = req.params.name;
+  console.log(name);
   let ngo;
   try{
-    ngo = await NGOOwner.findById("608e8e1e1da09829a8db8583");
-    res.json({ items: ngo});
+    ngo = await NGOOwner.find({nameNGO:name});
+    console.log(ngo);
+    res.json({ items: ngo[0]});
 
   }catch (err) {
     return next(err);

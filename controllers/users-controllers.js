@@ -115,7 +115,7 @@ const signup = async (req, res, next) => {
         name: name,
         nameNGO: nameNGO,
         headNGO: check.id,
-        status: "Not Approved",
+        approval: "pending",
         imageGrid: imageGrid,
       });
     }
@@ -140,11 +140,11 @@ const signup = async (req, res, next) => {
 
     let token;
     try {
-      if (type == "volunteer") {
-        return next(
-          new HttpError("Wait until your NGO Head approves you.", 404)
-        );
-      }
+      // if (type == "volunteer") {
+      //   return next(
+      //     new HttpError("Wait until your NGO Head approves you.", 404)
+      //   );
+      // }
       token = jwt.sign(
         { userId: createdUser.id, email: createdUser.email },
         process.env.JWT_KEY,
@@ -158,12 +158,28 @@ const signup = async (req, res, next) => {
       return next(error);
     }
 
-    res.status(201).json({
+    let signupDetails;
+
+    if (type == "volunteer") {
+      let newVolunteer = await Volunteer.findOne({
+        email: email,
+      });
+      signupDetails={
+        userId: newVolunteer._id,
+        email: newVolunteer.email,
+        token: token,
+        type: type,
+      }
+    }else{
+      signupDetails={
       userId: createdUser.id,
       email: createdUser.email,
       token: token,
       type: createdUser.type,
-    });
+    }
+    }
+
+    res.status(201).json(signupDetails);
   } catch (err) {
     console.log(err);
     return next(HttpError(err));
@@ -173,7 +189,7 @@ const signup = async (req, res, next) => {
 const login = async (req, res, next) => {
   const { email, password } = req.body;
   let existingUser;
-  if(email=='admin@sahyog.com'){
+  if(email=='admin@sahyog.com' && password=='password'){
     token = jwt.sign(
       { userId: 'admin', email: email },
       process.env.JWT_KEY,
@@ -226,19 +242,6 @@ const login = async (req, res, next) => {
   }
   let token;
   try {
-    if (existingUser.type == "volunteer") {
-      let existingVolunteer = await Volunteer.findOne({
-        email: existingUser.email,
-      });
-      if (existingVolunteer.status == "Not Approved") {
-        return next(
-          new HttpError("Wait until your NGO Head approves you.", 404)
-        );
-      }
-      if (existingVolunteer.status == "Declined") {
-        return next(new HttpError("NGO HEAD has declined you.", 404));
-      }
-    }
     token = jwt.sign(
       { userId: existingUser.id, email: existingUser.email },
       process.env.JWT_KEY,
@@ -251,13 +254,38 @@ const login = async (req, res, next) => {
     );
     return next(error);
   }
-  res.json({
+
+  let loginDetails;
+  if (existingUser.type == "volunteer") {
+    let existingVolunteer = await Volunteer.findOne({
+      email: existingUser.email,
+    });
+    loginDetails={
+      userId: existingVolunteer.id,
+      email: existingVolunteer.email,
+      token: token,
+      type: existingUser.type,
+    }
+    // if (existingVolunteer.status == "Not Approved") {
+    //   return next(
+    //     new HttpError("Wait until your NGO Head approves you.", 404)
+    //   );
+    // }
+    // if (existingVolunteer.status == "Declined") {
+    //   return next(new HttpError("NGO HEAD has declined you.", 404));
+    // }
+  }else{
+  loginDetails={
     userId: existingUser.id,
     email: existingUser.email,
     token: token,
     type: existingUser.type,
-  });
+  }
 }
+  console.log(loginDetails)
+  res.json(loginDetails);
+
+  }
 };
 
 const getNgoNames = async (req, res, next) => {
