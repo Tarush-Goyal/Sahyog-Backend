@@ -162,18 +162,18 @@ const itemsPickedByVolunteerId = async (req, res, next) => {
 //volunteer LeaderBoard
 const volunteerLeaderBoard = async (req, res, next) => {
   const _id = req.params.uid;
-  let user;
+ // let user;
   let volunteer;
   let volunteersUnderNGO;
   try {
-    user = await User.findById(_id);
-    volunteer = await Volunteer.findOne({email: user.email});
+   // user = await User.findById(_id);
+    volunteer = await Volunteer.findById(_id);
     console.log(volunteer.headNGO);
     volunteersUnderNGO = await NGOOwner.findById(volunteer.headNGO).populate({
       path: "volunteers",
       model: "Volunteer",
       match: {
-        status: "Approved"
+        approval: "approved"
       },
       populate: {
         path: "donationAccepted",
