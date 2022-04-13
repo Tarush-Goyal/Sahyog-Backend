@@ -35,6 +35,7 @@ const activeDonationRequest = async (req, res, next) => {
 const acceptDonationRequest = async (req, res, next) => {
   console.log("entered");
   const {_id, volunteerId} = req.body;
+  console.log(volunteerId);
   let existingItem;
   let existingVolunteer;
   let existingUser;
@@ -42,8 +43,8 @@ const acceptDonationRequest = async (req, res, next) => {
   let VolunteerId;
   try {
     existingItem = await Item.findById(_id);
-    existingUser = await User.findById(volunteerId); //potential issue here
-    existingVolunteer = await Volunteer.findOne({email: existingUser.email});
+    //existingUser = await User.findById(volunteerId); //potential issue here
+    existingVolunteer = await Volunteer.findById(volunteerId);
     ngo = await NGOOwner.findOne({nameNGO: existingVolunteer.nameNGO});
     VolunteerId = existingVolunteer.id;
     if (existingItem.status != "Pending") {
